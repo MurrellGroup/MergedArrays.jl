@@ -60,11 +60,11 @@ Base.size(m::Merged) = (m.len,)
 Base.getindex(m::Merged, i::Integer) = m.constructor(map(v -> v[i], m.storage)...)
 
 function merged(xs::AbstractVector{T}) where T
-    d = Dict()
+    pairs = []
     for name in fieldnames(T)
-        d[name] = _merge([getfield(x, name) for x in xs])
+        push!(pairs, name => _merge([getfield(x, name) for x in xs]))
     end
-    storage = (; zip(keys(d), values(d))...)
+    storage = (; pairs...)
     return Merged{T}(storage, length(xs))
 end
 
