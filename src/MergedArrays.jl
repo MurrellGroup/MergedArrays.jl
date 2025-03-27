@@ -3,6 +3,8 @@ module MergedArrays
 using EllipsisNotation
 using ConstructionBase
 
+include("utils.jl")
+
 export Merged, merged
 
 struct MergedArray{T,A<:AbstractArray,R} <: AbstractVector{T}
@@ -20,14 +22,11 @@ Base.size(ja::MergedArray) = size(ja.ranges)
 Base.getindex(ja::MergedArray, i::Integer) = ja.storage[.., ja.ranges[i]]
 Base.getindex(ja::MergedArray{String}, i::Integer) = String(ja.storage[.., ja.ranges[i]])
 
-function _merge_array(arrays::AbstractVector{A}) where A<:AbstractArray
+function _merge_array(arrays::AbstractVector{<:AbstractArray{<:Any,N}}) where N
     lengths = Iterators.map(last ∘ size, arrays)
     cumlens = Iterators.accumulate(+, lengths, init=0)
     ranges = [i+1:j for (i,j) in zip(Iterators.flatten((0, cumlens)), cumlens)]
-    storage = similar(A, size(first(arrays))[1:end-1]..., sum(lengths))
-    for (array, range) in zip(arrays, ranges)
-        @inbounds storage[.., range] .= array
-    end
+    storage = _cat(arrays; dims=N)
     return storage, ranges
 end
 
