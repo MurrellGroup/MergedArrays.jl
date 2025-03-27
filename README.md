@@ -40,6 +40,11 @@ Points{Int64}("first", 1.0f0, [0 1 2; 1 2 3])
 ## Implementation details
 
 ```julia
+julia> m.storage.name
+2-element MergedArrays.MergedArray{String, Vector{UInt8}, Vector{UnitRange{Int64}}}:
+ "first"
+ "last"
+
 julia> m.storage.name.storage
 9-element Vector{UInt8}:
  0x66
@@ -56,6 +61,11 @@ julia> m.storage.vibe
 2-element Vector{Float32}:
  1.0
  0.2
+
+julia> m.storage.points
+2-element MergedArrays.MergedArray{Matrix{Int64}, Matrix{Int64}, Vector{UnitRange{Int64}}}:
+ [0 1 2; 1 2 3]
+ [3 4; 4 5]
 
 julia> m.storage.points.storage
 2×5 Matrix{Int64}:
