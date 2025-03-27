@@ -1,8 +1,6 @@
 using MergedArrays
 using Test
 
-
-
 @testset "MergedArrays.jl" begin
 
     @testset "structs" begin
