@@ -1,15 +1,16 @@
 using MergedArrays
 using Test
 
+struct A
+    a
+    b
+    c
+    d
+end
+
 @testset "MergedArrays.jl" begin
 
     @testset "structs" begin
-        struct A
-            a
-            b
-            c
-            d
-        end
 
         Base.:(==)(a::A, b::A) = a.a == b.a && a.b == b.b && a.c == b.c && a.d == b.d
 
