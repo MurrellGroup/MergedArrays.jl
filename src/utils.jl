@@ -1,8 +1,6 @@
 # b=1000 ~2x faster than b=2
-function _cat(arrays::AbstractVector{<:AbstractArray}; dims, b=1000)
-    n = length(arrays)
-    n == 0 && throw(ArgumentError("No arrays provided"))
-    n == 1 && return collect(first(arrays))
+function _cat(arrays::AbstractArray{<:AbstractArray}; dims, b=1000)
+    isempty(arrays) && throw(ArgumentError("No arrays provided"))
 
     current = collect(arrays)
 

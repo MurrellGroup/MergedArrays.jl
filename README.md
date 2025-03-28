@@ -3,13 +3,13 @@
 [![Build Status](https://github.com/MurrellGroup/MergedArrays.jl/actions/workflows/CI.yml/badge.svg?branch=main)](https://github.com/MurrellGroup/MergedArrays.jl/actions/workflows/CI.yml?query=branch%3Amain)
 [![Coverage](https://codecov.io/gh/MurrellGroup/MergedArrays.jl/branch/main/graph/badge.svg)](https://codecov.io/gh/MurrellGroup/MergedArrays.jl)
 
-MergedArray exports the `merged` function: taking an `AbstractVector` of some data structure, returning a `Merged <: AbstractVector` with a memory layout designed to minimize references, reducing strain on Julia's garbage collection system.
+MergedArray exports the `merged` function: taking an `AbstractArray` of some data structure, returning a `Merged <: AbstractArray` with a memory layout designed to minimize references, reducing strain on Julia's garbage collection system.
 
 The `Merged` type merges the storage of fields with the following types:
 - `AbstractArray`
 - `AbstractString`
 
-Other fields are simply stored in `Vector`s, akin to [https://github.com/JuliaArrays/StructArrays.jl](StructArrays.jl).
+Other fields values are simply stored in `Array`s, akin to [https://github.com/JuliaArrays/StructArrays.jl](StructArrays.jl).
 
 ## Example
 
@@ -26,7 +26,7 @@ julia> a = [Points("first", 1.0f0, [0; 1;; 1; 2;; 2; 3]), Points("last", 0.2f0, 
  Points{Int64}("last", 0.2f0, [3 4; 4 5])
 
 julia> m = merged(a)
-2-element Merged{Points{Int64}, @NamedTuple{name::MergedArrays.MergedArray{String, Vector{UInt8}, Vector{UnitRange{Int64}}}, vibe::Vector{Float32}, points::MergedArrays.MergedArray{Matrix{Int64}, Matrix{Int64}, Vector{UnitRange{Int64}}}}, UnionAll}:
+2-element Merged{Points{Int64}, 1, @NamedTuple{name::MergedArrays.MergedStrings{1, MergedArrays.MergedArray{Vector{UInt8}, 1, Vector{UnitRange{Int64}}}}, vibe::Vector{Float32}, points::MergedArrays.MergedArray{Matrix{Int64}, 1, Vector{UnitRange{Int64}}}}, UnionAll}:
  Points{Int64}("first", 1.0f0, [0 1 2; 1 2 3])
  Points{Int64}("last", 0.2f0, [3 4; 4 5])
 
@@ -41,11 +41,11 @@ Points{Int64}("first", 1.0f0, [0 1 2; 1 2 3])
 
 ```julia
 julia> m.storage.name
-2-element MergedArrays.MergedArray{String, Vector{UInt8}, Vector{UnitRange{Int64}}}:
+2-element MergedArrays.MergedStrings{1, MergedArrays.MergedArray{Vector{UInt8}, 1, Vector{UnitRange{Int64}}}}:
  "first"
  "last"
 
-julia> m.storage.name.storage
+julia> m.storage.name.ma.storage
 9-element Vector{UInt8}:
  0x66
  0x69
@@ -63,7 +63,7 @@ julia> m.storage.vibe
  0.2
 
 julia> m.storage.points
-2-element MergedArrays.MergedArray{Matrix{Int64}, Matrix{Int64}, Vector{UnitRange{Int64}}}:
+2-element MergedArrays.MergedArray{Matrix{Int64}, 1, Vector{UnitRange{Int64}}}:
  [0 1 2; 1 2 3]
  [3 4; 4 5]
 

@@ -7,64 +7,68 @@ include("utils.jl")
 
 export Merged, merged
 
-struct MergedArray{T,A<:AbstractArray,R} <: AbstractVector{T}
-    storage::A
+struct MergedArray{S<:AbstractArray,N,R} <: AbstractArray{S,N}
+    storage::S
+    size::Dims{N}
     ranges::R
 end
 
-function MergedArray{T}(storage::A, ranges::R) where {T,A<:AbstractArray,R}
-    first(axes(storage, ndims(storage))) == 1 || error("storage array must have 1-based indexing")
-    return MergedArray{T,A,R}(storage, ranges)
+Base.size(ma::MergedArray) = ma.size
+
+Base.getindex(ma::MergedArray, i::Integer) = ma.storage[.., ma.ranges[i]]
+
+function Base.getindex(ma::MergedArray{<:Any,N}, i::Integer...) where N
+    return ma[LinearIndices(ma.size)[i...]]
 end
 
-Base.size(ja::MergedArray) = size(ja.ranges)
-
-Base.getindex(ja::MergedArray, i::Integer) = ja.storage[.., ja.ranges[i]]
-Base.getindex(ja::MergedArray{String}, i::Integer) = String(ja.storage[.., ja.ranges[i]])
-
-function _merge_array(arrays::AbstractVector{<:AbstractArray{<:Any,N}}) where N
+function MergedArray(arrays::AbstractArray{<:AbstractArray{<:Any,N}}) where N
     lengths = Iterators.map(last ∘ size, arrays)
     cumlens = Iterators.accumulate(+, lengths, init=0)
     ranges = [i+1:j for (i,j) in zip(Iterators.flatten((0, cumlens)), cumlens)]
     storage = _cat(arrays; dims=N)
-    return storage, ranges
+    return MergedArray(storage, size(arrays), ranges)
 end
 
-function _merge(arrays::AbstractVector{A}) where A<:AbstractArray
-    storage, ranges = _merge_array(arrays)
-    return MergedArray{typeof(storage)}(storage, ranges)
+merged(arrays::AbstractArray{<:AbstractArray{<:Any,N}}) where N = MergedArray(arrays)
+
+
+struct MergedStrings{N,MA<:MergedArray{<:Any,N}} <: AbstractArray{String,N}
+    ma::MA
 end
 
-function _merge(strings::AbstractVector{S}) where S<:AbstractString
-    storage, ranges = _merge_array(collect.(codeunits.(strings)))
-    return MergedArray{String}(storage, ranges)
-end
+Base.size(ms::MergedStrings) = size(ms.ma)
 
-_merge(xs::AbstractVector) = xs
+Base.getindex(ms::MergedStrings, i...) = String(ms.ma[i...])
+
+merged(strings::AbstractArray{<:AbstractString}) = MergedStrings(MergedArray(codeunits.(strings)))
 
 
-struct Merged{T,S<:NamedTuple,C} <: AbstractVector{T}
+struct Merged{T,N,S<:NamedTuple,C} <: AbstractArray{T,N}
     storage::S
-    len::Int
+    size::Dims{N}
     constructor::C
 end
 
-function Merged{T}(storage::S, len::Int) where {T,S<:NamedTuple}
+function Merged{T}(storage::S, size::Dims{N}) where {T,N,S<:NamedTuple}
     constructor = constructorof(T)
-    return Merged{T,S,typeof(constructor)}(storage, len, constructor)
+    return Merged{T,N,S,typeof(constructor)}(storage, size, constructor)
 end
 
-Base.size(m::Merged) = (m.len,)
+Base.size(m::Merged) = m.size
 
-Base.getindex(m::Merged, i::Integer) = m.constructor(map(v -> v[i], m.storage)...)
+Base.getindex(m::Merged, i...) = m.constructor(map(v -> v[i...], m.storage)...)
 
-function merged(xs::AbstractVector{T}) where T
+function merged(xs::AbstractArray{T}) where T
+    isempty(xs) && throw(ArgumentError("Cannot merge empty vector"))
+    isbitstype(T) && return xs
     pairs = []
     for name in fieldnames(T)
-        push!(pairs, name => _merge([getfield(x, name) for x in xs]))
+        push!(pairs, name => merged([getfield(x, name) for x in xs]))
     end
     storage = (; pairs...)
-    return Merged{T}(storage, length(xs))
+    constructor = constructorof(T)
+    newT = typeof(constructor(first.(last.(pairs))...))
+    return Merged{newT}(storage, size(xs))
 end
 
 end
