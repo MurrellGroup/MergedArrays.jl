@@ -4,7 +4,7 @@ using ConstructionBase
 
 include("utils.jl")
 
-export Merged, merged
+export MergedArray, MergedStrings, Merged, merged
 
 struct MergedArray{S<:AbstractArray,N,R} <: AbstractArray{S,N}
     storage::S
