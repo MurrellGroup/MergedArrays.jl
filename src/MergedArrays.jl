@@ -4,19 +4,25 @@ using ConstructionBase
 
 include("utils.jl")
 
-export MergedArray, MergedStrings, Merged, merged
+export MergedArray, MergedVector, MergedMatrix
+export MergedStrings
+export Merged
+export merged
 
-struct MergedArray{S<:AbstractArray,N,R} <: AbstractArray{S,N}
+struct MergedArray{N,S<:AbstractArray,R} <: AbstractArray{S,N}
     storage::S
     size::Dims{N}
     ranges::R
 end
 
+const MergedVector = MergedArray{1}
+const MergedMatrix = MergedArray{2}
+
 Base.size(ma::MergedArray) = ma.size
 
 Base.getindex(ma::MergedArray, i::Integer) = collect(selectdim(ma.storage, ndims(ma.storage), ma.ranges[i]))
 
-function Base.getindex(ma::MergedArray{<:Any,N}, i::Integer...) where N
+function Base.getindex(ma::MergedArray, i::Integer...)
     return ma[LinearIndices(ma.size)[i...]]
 end
 
@@ -31,7 +37,7 @@ end
 merged(arrays::AbstractArray{<:AbstractArray{<:Any,N}}) where N = MergedArray(arrays)
 
 
-struct MergedStrings{N,MA<:MergedArray{<:Any,N}} <: AbstractArray{String,N}
+struct MergedStrings{N,MA<:MergedArray{N}} <: AbstractArray{String,N}
     ma::MA
 end
 
