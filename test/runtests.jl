@@ -23,6 +23,8 @@ using Test
         @test length(marr.storage.a) == 2
         @test length(marr) == length(arr)
         @test all(marr .== arr)
+
+        @test merged(permutedims(arr))[1,1] == marr[1]
     end
 
     @testset "NamedTuple" begin
