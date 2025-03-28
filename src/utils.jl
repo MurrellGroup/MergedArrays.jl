@@ -15,5 +15,6 @@ function _cat(arrays::AbstractArray{<:AbstractArray}; dims, b=1000)
         current = new
     end
     
-    return only(current)
+    @assert length(current) == 1
+    return first(current)
 end
