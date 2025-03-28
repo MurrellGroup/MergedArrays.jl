@@ -1,6 +1,5 @@
 module MergedArrays
 
-using EllipsisNotation
 using ConstructionBase
 
 include("utils.jl")
