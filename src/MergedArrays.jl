@@ -15,7 +15,7 @@ end
 
 Base.size(ma::MergedArray) = ma.size
 
-Base.getindex(ma::MergedArray, i::Integer) = ma.storage[.., ma.ranges[i]]
+Base.getindex(ma::MergedArray, i::Integer) = collect(selectdim(ma.storage, ndims(ma.storage), ma.ranges[i]))
 
 function Base.getindex(ma::MergedArray{<:Any,N}, i::Integer...) where N
     return ma[LinearIndices(ma.size)[i...]]
