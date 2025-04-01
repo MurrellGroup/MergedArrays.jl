@@ -43,7 +43,8 @@ end
 
 Base.size(ms::MergedStrings) = size(ms.ma)
 
-Base.getindex(ms::MergedStrings, i...) = String(ms.ma[i...])
+Base.getindex(ms::MergedStrings, i::Integer) = String(ms.ma[i])
+Base.getindex(ms::MergedStrings, I...) = [ms[i] for i in LinearIndices(ms)[I...]]
 
 merged(strings::AbstractArray{<:AbstractString}) = MergedStrings(MergedArray(codeunits.(strings)))
 
@@ -61,7 +62,8 @@ end
 
 Base.size(m::Merged) = m.size
 
-Base.getindex(m::Merged, i...) = m.constructor(map(v -> v[i...], m.storage)...)
+Base.getindex(m::Merged, i::Integer) = m.constructor(map(v -> v[i], m.storage)...)
+Base.getindex(m::Merged, I...) = [m[i] for i in LinearIndices(m)[I...]]
 
 function merged(xs::AbstractArray{T}) where T
     isempty(xs) && throw(ArgumentError("Cannot merge empty vector"))
