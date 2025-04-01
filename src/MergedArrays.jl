@@ -21,10 +21,9 @@ const MergedMatrix = MergedArray{2}
 Base.size(ma::MergedArray) = ma.size
 
 Base.getindex(ma::MergedArray, i::Integer) = collect(selectdim(ma.storage, ndims(ma.storage), ma.ranges[i]))
+Base.getindex(ma::MergedArray, i::Integer...) = ma[LinearIndices(ma.size)[i...]]
+Base.getindex(ma::MergedArray, I...) = [ma[i] for i in LinearIndices(ma)[I...]]
 
-function Base.getindex(ma::MergedArray, i::Integer...)
-    return ma[LinearIndices(ma.size)[i...]]
-end
 
 function MergedArray(arrays::AbstractArray{<:AbstractArray{<:Any,N}}) where N
     lengths = Iterators.map(last ∘ size, arrays)
@@ -43,7 +42,7 @@ end
 
 Base.size(ms::MergedStrings) = size(ms.ma)
 
-Base.getindex(ms::MergedStrings, i::Integer) = String(ms.ma[i])
+Base.getindex(ms::MergedStrings, i::Integer...) = String(ms.ma[i...])
 Base.getindex(ms::MergedStrings, I...) = [ms[i] for i in LinearIndices(ms)[I...]]
 
 merged(strings::AbstractArray{<:AbstractString}) = MergedStrings(MergedArray(codeunits.(strings)))
@@ -62,7 +61,7 @@ end
 
 Base.size(m::Merged) = m.size
 
-Base.getindex(m::Merged, i::Integer) = m.constructor(map(v -> v[i], m.storage)...)
+Base.getindex(m::Merged, i::Integer...) = m.constructor(map(v -> v[i...], m.storage)...)
 Base.getindex(m::Merged, I...) = [m[i] for i in LinearIndices(m)[I...]]
 
 function merged(xs::AbstractArray{T}) where T
