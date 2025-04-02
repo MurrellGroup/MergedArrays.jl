@@ -1,19 +1,27 @@
-# b=1000 ~2x faster than b=2
-function _cat(arrays::AbstractArray{<:AbstractArray}; dims, b=1000)
+function _cat(arrays::AbstractArray{<:AbstractArray{T,N}}; dims::Integer) where {T,N}
     isempty(arrays) && throw(ArgumentError("No arrays provided"))
+    dims > N && throw(ArgumentError("dims > N is currently not supported"))
 
-    current = collect(arrays)
+    first_arr = first(arrays)
+    refsize = size(first_arr)
+    total = 0
 
-    while length(current) > 1
-        new = Vector{Any}(undef, ceil(Int, length(current) / b))
-        j = 1
-        for i in 1:b:length(current)
-            group = current[i:min(i+b-1, length(current))]
-            new[j] = (length(group) == 1) ? group[1] : cat(group...; dims=dims)
-            j += 1
+    for arr in arrays
+        s = size(arr)
+        total += s[dims]
+        for i in 1:N
+            i != dims && s[i] != refsize[i] && throw(DimensionMismatch("Inconsistent dimensions"))
         end
-        current = new
+    end
+
+    final_size = ntuple(i -> i == dims ? total : refsize[i], N)
+    result = similar(first_arr, T, final_size)
+    i = 0
+    @inbounds for arr in arrays
+        k = size(arr, dims)
+        copyto!(selectdim(result, dims, i+1:i+k), arr)
+        i += k
     end
     
-    return only(current)
+    return result
 end
