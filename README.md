@@ -7,7 +7,7 @@ MergedArray exports the `merged` function: taking an `AbstractArray` of some str
 
 The `merged` function takes an array of structures and merges the storage and references of nested fields:
 - `AbstractArray` fields -> `MergedArrayOfArrays`
-- `AbstractString` fields -> `MergedArrayOfStrings` (single reference)
+- `AbstractString` fields -> `MergedArrayOfStrings`
 - other nested fields -> `Array`
 
 Other fields values are simply stored in `Array`s, akin to [https://github.com/JuliaArrays/StructArrays.jl](StructArrays.jl).
