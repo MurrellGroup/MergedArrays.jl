@@ -26,7 +26,7 @@ julia> a = [Points("first", 1.0f0, [0; 1;; 1; 2;; 2; 3]), Points("last", 0.2f0, 
  Points{Int64}("last", 0.2f0, [3 4; 4 5])
 
 julia> m = merged(a)
-2-element Merged{Points{Int64}, 1, @NamedTuple{name::MergedStrings{1, MergedVector{Vector{UInt8}, Vector{UnitRange{Int64}}}}, vibe::Vector{Float32}, points::MergedVector{Matrix{Int64}, Vector{UnitRange{Int64}}}}, UnionAll}:
+2-element Merged{Points{Int64}, 1, @NamedTuple{name::MergedArray{String, 1, Vector{UInt8}, Vector{UnitRange{Int64}}}, vibe::Vector{Float32}, points::MergedArray{Matrix{Int64}, 1, Matrix{Int64}, Vector{UnitRange{Int64}}}}, UnionAll}:
  Points{Int64}("first", 1.0f0, [0 1 2; 1 2 3])
  Points{Int64}("last", 0.2f0, [3 4; 4 5])
 
@@ -41,11 +41,11 @@ Points{Int64}("first", 1.0f0, [0 1 2; 1 2 3])
 
 ```julia
 julia> m.storage.name
-2-element MergedStrings{1, MergedVector{Vector{UInt8}, Vector{UnitRange{Int64}}}}:
+2-element MergedArray{String, 1, Vector{UInt8}, Vector{UnitRange{Int64}}}:
  "first"
  "last"
 
-julia> m.storage.name.ma.storage
+julia> m.storage.name.storage
 9-element Vector{UInt8}:
  0x66
  0x69
@@ -63,7 +63,7 @@ julia> m.storage.vibe
  0.2
 
 julia> m.storage.points
-2-element MergedVector{Matrix{Int64}, Vector{UnitRange{Int64}}}:
+2-element MergedArray{Matrix{Int64}, 1, Matrix{Int64}, Vector{UnitRange{Int64}}}:
  [0 1 2; 1 2 3]
  [3 4; 4 5]
 
