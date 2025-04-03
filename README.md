@@ -13,10 +13,10 @@ The `merged` function takes an array of structures and merges the storage and re
 ## Example
 
 ```julia
-julia> struct Points{T,M<:AbstractMatrix{T}}
+julia> struct Points{T}
            name::String
            vibe::Float32
-           points::M
+           points::Matrix{T}
        end
 
 julia> a = [Points("first", 1.0f0, [0; 1;; 2; 3;; 4; 5]), Points("last", 0.2f0, [6; 7;; 8; 9])]
