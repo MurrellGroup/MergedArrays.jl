@@ -1,86 +1,111 @@
 module MergedArrays
 
+import ArraysOfArrays
 using ConstructionBase
 
-include("utils.jl")
+export MergedArrayOfArrays,  MergedVectorOfArrays,  MergedMatrixOfArrays
+export MergedArrayOfStrings, MergedVectorOfStrings, MergedMatrixOfStrings
+export MergedArray,          MergedVector,          MergedMatrix
 
-export MergedArray, MergedVector, MergedMatrix
-export MergedStrings
-export Merged
+# main API
 export merged
 
-struct MergedArray{T,N,S<:AbstractArray,R} <: AbstractArray{T,N}
+# ArraysOfArrays.VectorOfArrays with arbitrary dimensions
+# constrained in that it's not mutable/resizeable like ArraysOfArrays.VectorOfArrays
+struct MergedArrayOfArrays{T,N,M,S<:ArraysOfArrays.VectorOfArrays{T,M}} <: AbstractArray{Array{T,N},N}
     storage::S
     size::Dims{N}
-    ranges::R
 end
 
-const MergedVector = MergedArray{1}
-const MergedMatrix = MergedArray{2}
+const MergedVectorOfArrays = MergedArrayOfArrays{<:Any,1}
+const MergedMatrixOfArrays = MergedArrayOfArrays{<:Any,2}
 
-MergedArray{T}(storage::S, size::Dims{N}, ranges::R) where {T,N,S<:AbstractArray,R} =
-    MergedArray{T,N,S,R}(storage, size, ranges)
-
-Base.convert(::Type{MergedArray{T}}, ma::MergedArray) where T =
-    MergedArray{T}(ma.storage, ma.size, ma.ranges)
-
-function MergedArray(arrays::AbstractArray{<:AbstractArray{<:Any,N}}) where N
-    lengths = Iterators.map(last ∘ size, arrays)
-    cumlens = Iterators.accumulate(+, lengths, init=0)
-    ranges = [i+1:j for (i,j) in zip(Iterators.flatten((0, cumlens)), cumlens)]
-    storage = _cat(arrays; dims=N)
-    ma = MergedArray{Any}(storage, size(arrays), ranges)
-    T = typeof(first(ma))
-    return convert(MergedArray{T}, ma)
+function MergedArrayOfArrays(arrays::AbstractArray{<:AbstractArray})
+    return MergedArrayOfArrays(ArraysOfArrays.VectorOfArrays(vec(arrays)), size(arrays))
 end
 
-Base.size(ma::MergedArray) = ma.size
+Base.size(array::MergedArrayOfArrays) = array.size
 
-function Base.view(ma::MergedArray{T}, I...) where T
-    is = LinearIndices(ma)[I...]
-    return MergedArray{T}(ma.storage, size(is), view(ma.ranges, is))
+Base.getindex(array::MergedArrayOfArrays, i::Integer) = collect(array.storage[i])
+Base.getindex(array::MergedArrayOfArrays, i::Integer...) = array[LinearIndices(array)[i...]]
+Base.getindex(array::MergedArrayOfArrays, i::CartesianIndex) = array[LinearIndices(array)[i]]
+
+function Base.getindex(array::MergedArrayOfArrays, I...)
+    is = LinearIndices(array)[I...]
+    return MergedArrayOfArrays(array.storage[vec(is)], size(is))
 end
 
-Base.getindex(ma::MergedArray, i::Integer) = collect(selectdim(ma.storage, ndims(ma.storage), ma.ranges[i]))
-Base.getindex(ma::MergedArray, i::Integer...) = ma[LinearIndices(ma.size)[i...]]
-Base.getindex(ma::MergedArray, I...) = [ma[i] for i in LinearIndices(ma)[I...]]
 
-merged(arrays::AbstractArray{<:AbstractArray{<:Any,N}}) where N = MergedArray(arrays)
+struct MergedArrayOfStrings{N,A<:MergedArrayOfArrays{<:Any,N}} <: AbstractArray{String,N}
+    array::A
+end
 
-Base.getindex(ma::MergedArray{String}, i::Integer) = String(invoke(getindex, Tuple{MergedArray, Integer}, ma, i))
+const MergedVectorOfStrings = MergedArrayOfStrings{1}
+const MergedMatrixOfStrings = MergedArrayOfStrings{2}
 
-merged(strings::AbstractArray{<:AbstractString}) =
-    convert(MergedArray{String}, MergedArray(codeunits.(strings)))
+function MergedArrayOfStrings(strings::AbstractArray{<:AbstractString})
+    return MergedArrayOfStrings(MergedArrayOfArrays(codeunits.(strings)))
+end
+
+Base.size(strings::MergedArrayOfStrings) = size(strings.array)
+
+Base.getindex(strings::MergedArrayOfStrings, i::Integer...) = String(strings.array[i...])
+Base.getindex(strings::MergedArrayOfStrings, i::CartesianIndex) = String(strings.array[i])
+Base.getindex(strings::MergedArrayOfStrings, I...) = MergedArrayOfStrings(strings.array[I...])
 
 
-struct Merged{T,N,S<:NamedTuple,C} <: AbstractArray{T,N}
+struct MergedArray{T,N,S<:NamedTuple,C} <: AbstractArray{T,N}
     storage::S
     size::Dims{N}
     constructor::C
 end
 
-function Merged{T}(storage::S, size::Dims{N}) where {T,N,S<:NamedTuple}
+function MergedArray{T}(storage::S, size::Dims{N}) where {T,N,S<:NamedTuple}
     constructor = constructorof(T)
-    return Merged{T,N,S,typeof(constructor)}(storage, size, constructor)
+    return MergedArray{T,N,S,typeof(constructor)}(storage, size, constructor)
 end
 
-Base.size(m::Merged) = m.size
+const MergedVector = MergedArray{<:Any,1}
+const MergedMatrix = MergedArray{<:Any,2}
 
-Base.getindex(m::Merged, i::Integer...) = m.constructor(map(v -> v[i...], m.storage)...)
-Base.getindex(m::Merged, I...) = [m[i] for i in LinearIndices(m)[I...]]
+Base.size(array::MergedArray) = array.size
 
-function merged(xs::AbstractArray{T}) where T
-    isempty(xs) && throw(ArgumentError("Cannot merge empty vector"))
-    !isconcretetype(T) && throw(ArgumentError("Cannot merge array of non-concrete type $T"))
-    isbitstype(T) && return xs
-    pairs = []
+Base.getindex(array::MergedArray, i::Integer...) = array.constructor(map(v -> v[i...], array.storage)...)
+Base.getindex(array::MergedArray, I...) = [array[i] for i in LinearIndices(array)[I...]]
+
+function MergedArray(xs::AbstractArray{T}) where T
+    pairs = Pair{Symbol,Any}[]
     for name in fieldnames(T)
         push!(pairs, name => merged([getfield(x, name) for x in xs]))
     end
     storage = (; pairs...)
-    constructor = constructorof(T)
-    newT = typeof(constructor(first.(last.(pairs))...))
-    return Merged{newT}(storage, size(xs))
+    newT = typeof(constructorof(T)(first.(last.(pairs))...))
+    return MergedArray{newT}(storage, size(xs))
+end
+
+
+"""
+    merged(array::AbstractArray)
+
+Change the memory layout of `array` and its elements to minimize
+references and reduce strain on the garbage collector.
+"""
+function merged end
+
+merged(arrays::AbstractArray{<:AbstractArray}) = MergedArrayOfArrays(arrays)
+merged(strings::AbstractArray{<:AbstractString}) = MergedArrayOfStrings(strings)
+
+function merged(xs::AbstractArray{T}) where T
+    isempty(xs) && return xs
+    isbitstype(T) && return xs
+    if !isconcretetype(T)
+        narrowed_xs = identity.(xs) # Any[1, 2] -> Int[1, 2], Any[1, 1.0] -> Real[1, 1.0]
+        narrowed_T = eltype(narrowed_xs)
+        narrowed_T >: T || return merged(narrowed_xs)
+        @warn "Failed to narrow element type to a concrete type."
+        return narrowed_xs
+    end
+    return MergedArray(xs)
 end
 
 end

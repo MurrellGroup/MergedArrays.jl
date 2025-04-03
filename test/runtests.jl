@@ -16,11 +16,11 @@ end
 
         arr = [A("ABC", [1,2,3], [0 0], 1), A("DEFG", [4,5,6,7], [1 1 1], 2)]
         marr = merged(arr)
-        @test marr isa Merged
+        @test marr isa MergedArray
         @test marr isa AbstractVector{A}
         @test marr[1] isa A
-        @test marr.storage.a isa MergedArrays.MergedArray{String}
-        @test marr.storage.b isa MergedArrays.MergedArray
+        @test marr.storage.a isa MergedArrays.MergedArrayOfStrings
+        @test marr.storage.b isa MergedArrays.MergedArrayOfArrays
         @test length(marr.storage.a) == 2
         @test length(marr) == length(arr)
         @test all(marr .== arr)
@@ -34,14 +34,15 @@ end
             (a="DEFG", b=[4,5,6,7], c=[1 1 1], d=2)
         ]
         marr = merged(arr)
-        @test marr isa Merged
-        @test marr isa AbstractVector{eltype(arr)}
+        @test marr isa MergedArray
         @test marr[1] isa eltype(marr)
-        @test marr.storage.a isa MergedArrays.MergedArray{String}
-        @test marr.storage.b isa MergedArrays.MergedArray
+        @test marr.storage.a isa MergedArrays.MergedArrayOfStrings
+        @test marr.storage.b isa MergedArrays.MergedArrayOfArrays
         @test length(marr.storage.a) == 2
         @test length(marr) == length(arr)
         @test all(marr .== arr)
     end
+
+    @test_logs (:warn, "Failed to narrow element type to a concrete type.") merged(Any[1, 1.0]) isa Vector{Real}
 
 end
