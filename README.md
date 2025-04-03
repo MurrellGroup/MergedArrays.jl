@@ -3,7 +3,7 @@
 [![Build Status](https://github.com/MurrellGroup/MergedArrays.jl/actions/workflows/CI.yml/badge.svg?branch=main)](https://github.com/MurrellGroup/MergedArrays.jl/actions/workflows/CI.yml?query=branch%3Amain)
 [![Coverage](https://codecov.io/gh/MurrellGroup/MergedArrays.jl/branch/main/graph/badge.svg)](https://codecov.io/gh/MurrellGroup/MergedArrays.jl)
 
-MergedArray exports the `merged` function: taking an `AbstractArray` of some structure, and makes a new array if it sees that the memory layout of the array and its elements can be improved in order to minimize references and reduce strain on the garbage collector.
+MergedArray exports the `merged` function: taking an `AbstractArray` of some structure, and makes a new array if it sees that the memory layout of the array and its elements can be improved in order to minimize references and reduce strain on the garbage collector (especially full collections).
 
 The `merged` function takes an array of structures and merges the storage and references of nested fields:
 - `AbstractArray` fields -> `MergedArrayOfArrays`
