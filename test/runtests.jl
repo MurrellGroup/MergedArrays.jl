@@ -14,7 +14,7 @@ end
 
         Base.:(==)(a::A, b::A) = a.a == b.a && a.b == b.b && a.c == b.c && a.d == b.d
 
-        arr = [A("ABC", [1,2,3], [0 0], 1), A("DEFG", [4,5,6,7], [1 1 1], 2)]
+        arr = [A("ABC", [1,2,3], [0 0], 1), A("DEFG", Any[4,5,6,7], [1 1 1], 2)]
         marr = merged(arr)
         @test marr isa MergedArrays.MergedArray
         @test marr isa AbstractVector{A}
@@ -38,6 +38,7 @@ end
         @test marr.a[:,:] isa Matrix{String}
 
         @test marr.b[1] isa Vector{Int}
+        @test marr.b[2] isa Vector{Int}
         @test marr.b[:] isa Vector{Vector{Int}}
         @test marr.b[:,:] isa Matrix{Vector{Int}}
     end

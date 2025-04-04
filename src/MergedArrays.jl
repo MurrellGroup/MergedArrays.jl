@@ -113,11 +113,17 @@ references and reduce strain on the garbage collector.
 """
 function merged end
 
+# Any[1, 2] -> Int[1, 2]
+# Any[1, 1.0] -> Real[1, 1.0]
+# Vector{Any}[[1], Any[2]] -> Vector{Int}[[1], [2]]
+nested_narrow(x) = identity(x)
+nested_narrow(array::AbstractArray) = nested_narrow.(array)
+
 function merged(xs::AbstractArray{T}) where T
     isempty(xs) && return xs
     isbitstype(T) && return xs
     if !isconcretetype(T)
-        narrowed_xs = identity.(xs) # Any[1, 2] -> Int[1, 2], Any[1, 1.0] -> Real[1, 1.0]
+        narrowed_xs = nested_narrow(xs)
         narrowed_T = eltype(narrowed_xs)
         narrowed_T >: T || return merged(narrowed_xs)
         @warn "Failed to narrow element type to a concrete type."
@@ -126,7 +132,9 @@ function merged(xs::AbstractArray{T}) where T
     return MergedArray(xs)
 end
 
-merged(arrays::AbstractArray{<:AbstractArray}) = MergedArrayOfArrays(arrays)
+merged(arrays::AbstractArray{<:AbstractArray{T}}) where T = MergedArrayOfArrays(arrays)
+merged(arrays::AbstractArray{<:AbstractArray}) = MergedArrayOfArrays(nested_narrow(arrays))
+
 merged(strings::AbstractArray{<:AbstractString}) = MergedArrayOfStrings(strings)
 
 end
