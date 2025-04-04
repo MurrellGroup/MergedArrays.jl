@@ -19,6 +19,8 @@ end
         @test marr isa MergedArrays.MergedArray
         @test marr isa AbstractVector{A}
         @test marr[1] isa A
+        @test marr[:] isa Vector{A}
+        @test marr[:,:] isa Matrix{A}
         @test marr.a isa MergedArrays.MergedArrayOfStrings
         @test marr.b isa MergedArrays.MergedArrayOfArrays
         @test length(marr.a) == 2
@@ -26,6 +28,18 @@ end
         @test all(marr .== arr)
 
         @test merged(permutedims(arr))[1,1] == marr[1]
+
+        io = IOBuffer()
+        Base.showarg(io, marr, true)
+        @test String(take!(io)) == "merged(::Vector{A})"
+
+        @test marr.a[1] isa String
+        @test marr.a[:] isa Vector{String}
+        @test marr.a[:,:] isa Matrix{String}
+
+        @test marr.b[1] isa Vector{Int}
+        @test marr.b[:] isa Vector{Vector{Int}}
+        @test marr.b[:,:] isa Matrix{Vector{Int}}
     end
 
     @testset "NamedTuple" begin

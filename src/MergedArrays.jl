@@ -24,6 +24,8 @@ function Base.showarg(io::IO, array::AbstractMergedArray, toplevel)
     print(io, "merged(::$(parent_type(array)))")
 end
 
+Base.getindex(array::AbstractMergedArray, I...) = [array[i] for i in LinearIndices(array)[I...]]
+
 
 struct MergedArray{T,N,S<:NamedTuple,C,P} <: AbstractMergedArray{T,N}
     _eltype::Type{T}
@@ -43,7 +45,6 @@ const MergedMatrix = MergedArray{<:Any,2}
 Base.size(array::MergedArray) = array._size
 
 Base.getindex(array::MergedArray, i::Integer...) = array._constructor(map(v -> v[i...], array._storage)...)
-Base.getindex(array::MergedArray, I...) = [array[i] for i in LinearIndices(array)[I...]]
 
 function Base.getproperty(array::MergedArray, prop::Symbol)
     if prop in fieldnames(MergedArray)
@@ -52,7 +53,6 @@ function Base.getproperty(array::MergedArray, prop::Symbol)
         return getproperty(array._storage, prop)
     end
 end
-
 
 function MergedArray(xs::AbstractArray{T}) where T
     pairs = Pair{Symbol,Any}[]
@@ -86,11 +86,6 @@ Base.getindex(array::MergedArrayOfArrays, i::Integer) = collect(array.storage[i]
 Base.getindex(array::MergedArrayOfArrays, i::Integer...) = array[LinearIndices(array)[i...]]
 Base.getindex(array::MergedArrayOfArrays, i::CartesianIndex) = array[LinearIndices(array)[i]]
 
-function Base.getindex(array::MergedArrayOfArrays, I...)
-    is = LinearIndices(array)[I...]
-    return MergedArrayOfArrays(array.storage[vec(is)], size(is), array._parent_type)
-end
-
 
 struct MergedArrayOfStrings{N,A<:MergedArrayOfArrays{<:Any,N},P} <: AbstractMergedArray{String,N}
     array::A
@@ -108,7 +103,6 @@ Base.size(strings::MergedArrayOfStrings) = size(strings.array)
 
 Base.getindex(strings::MergedArrayOfStrings, i::Integer...) = String(strings.array[i...])
 Base.getindex(strings::MergedArrayOfStrings, i::CartesianIndex) = String(strings.array[i])
-Base.getindex(strings::MergedArrayOfStrings, I...) = MergedArrayOfStrings(strings.array[I...], strings._parent_type)
 
 
 """
