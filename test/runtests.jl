@@ -19,9 +19,9 @@ end
         @test marr isa MergedArrays.MergedArray
         @test marr isa AbstractVector{A}
         @test marr[1] isa A
-        @test marr.storage.a isa MergedArrays.MergedArrayOfStrings
-        @test marr.storage.b isa MergedArrays.MergedArrayOfArrays
-        @test length(marr.storage.a) == 2
+        @test marr.a isa MergedArrays.MergedArrayOfStrings
+        @test marr.b isa MergedArrays.MergedArrayOfArrays
+        @test length(marr.a) == 2
         @test length(marr) == length(arr)
         @test all(marr .== arr)
 
@@ -36,9 +36,9 @@ end
         marr = merged(arr)
         @test marr isa MergedArrays.MergedArray
         @test marr[1] isa eltype(marr)
-        @test marr.storage.a isa MergedArrays.MergedArrayOfStrings
-        @test marr.storage.b isa MergedArrays.MergedArrayOfArrays
-        @test length(marr.storage.a) == 2
+        @test marr.a isa MergedArrays.MergedArrayOfStrings
+        @test marr.b isa MergedArrays.MergedArrayOfArrays
+        @test length(marr.a) == 2
         @test length(marr) == length(arr)
         @test all(marr .== arr)
     end
