@@ -10,7 +10,7 @@ The `merged` function takes an array of structures and merges the storage and re
 - `AbstractString` fields -> `MergedArrayOfStrings`
 - other nested fields -> `Array`
 
-## Example
+## Examples
 
 ```julia
 julia> struct Points{T}
@@ -25,10 +25,52 @@ julia> a = [Points("first", 1.0f0, [0; 1;; 2; 3;; 4; 5]), Points("last", 0.2f0, 
  Points{Int64}("last", 0.2f0, [6 8; 7 9])
 
 julia> m = merged(a)
-2-element MergedVector{Points{Int64}, @NamedTuple{name::MergedVectorOfStrings{MergedVectorOfArrays{UInt8, 1, ArraysOfArrays.VectorOfVectors{UInt8, Vector{UInt8}, Vector{Int64}, Vector{Tuple{}}}}}, vibe::Vector{Float32}, points::MergedVectorOfArrays{Int64, 2, ArraysOfArrays.VectorOfArrays{Int64, 2, 1, Vector{Int64}, Vector{Int64}, Vector{Tuple{Int64}}}}}, UnionAll}:
+2-element merged(::Vector{Points{Int64}}):
  Points{Int64}("first", 1.0f0, [0 2 4; 1 3 5])
  Points{Int64}("last", 0.2f0, [6 8; 7 9])
 
 julia> m[1]
 Points{Int64}("first", 1.0f0, [0 2 4; 1 3 5])
+
+julia> m.name # special lazy nested field access
+2-element merged(::Vector{String}):
+ "first"
+ "last"
+```
+
+> [!NOTE]
+> In the interest of type consistency, accessing elements of MergedArrays does *not* return views, i.e. new arrays get allocated. For lazy access of subarrays, it is best to use `view(merged(array), I...)`.
+
+## Motivation
+
+The duration of "full" garbage collections can be significantly reduced by using `merged` arrays. For example:
+
+```julia
+julia> strings = ["" for i in 1:1_000_000_000]; # one billion references (strings)
+
+julia> @time GC.gc()
+  0.636332 seconds (100.00% gc time)
+
+julia> @time GC.gc()
+  0.498087 seconds (100.00% gc time)
+
+julia> strings = merged(strings)
+1000000000-element merged(::Vector{String}):
+ ""
+ ""
+ # output truncated
+
+julia> @time GC.gc() # original Vector gets collected
+  0.240929 seconds (99.99% gc time)
+
+julia> @time GC.gc()
+  0.019803 seconds (99.86% gc time)
+
+julia> strings = nothing
+
+julia> @time GC.gc()
+  0.101071 seconds (99.97% gc time)
+
+julia> @time GC.gc()
+  0.018891 seconds (99.83% gc time)
 ```

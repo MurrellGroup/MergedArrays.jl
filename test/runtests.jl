@@ -16,7 +16,7 @@ end
 
         arr = [A("ABC", [1,2,3], [0 0], 1), A("DEFG", [4,5,6,7], [1 1 1], 2)]
         marr = merged(arr)
-        @test marr isa MergedArray
+        @test marr isa MergedArrays.MergedArray
         @test marr isa AbstractVector{A}
         @test marr[1] isa A
         @test marr.storage.a isa MergedArrays.MergedArrayOfStrings
@@ -34,7 +34,7 @@ end
             (a="DEFG", b=[4,5,6,7], c=[1 1 1], d=2)
         ]
         marr = merged(arr)
-        @test marr isa MergedArray
+        @test marr isa MergedArrays.MergedArray
         @test marr[1] isa eltype(marr)
         @test marr.storage.a isa MergedArrays.MergedArrayOfStrings
         @test marr.storage.b isa MergedArrays.MergedArrayOfArrays
