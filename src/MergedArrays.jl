@@ -12,7 +12,7 @@ export merged
 
 # ArraysOfArrays.VectorOfArrays with arbitrary dimensions
 # constrained in that it's not mutable/resizeable like ArraysOfArrays.VectorOfArrays
-struct MergedArrayOfArrays{T,N,M,S<:ArraysOfArrays.VectorOfArrays{T,M}} <: AbstractArray{Array{T,N},N}
+struct MergedArrayOfArrays{T,N,M,S<:ArraysOfArrays.VectorOfArrays{T,M}} <: AbstractArray{Array{T,M},N}
     storage::S
     size::Dims{N}
 end
