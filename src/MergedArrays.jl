@@ -47,7 +47,7 @@ function MergedArray(xs::AbstractArray{T}) where T
     end
     storage = (; pairs...)
     constructor = constructorof(T)
-    x = typeof(constructor(first.(last.(pairs))...))
+    x = constructor(first.(last.(pairs))...)
     return MergedArray(typeof(x), size(xs), storage, constructor, typeof(xs))
 end
 
