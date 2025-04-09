@@ -101,7 +101,7 @@ function merged end
 # Any[1, 2] -> Int[1, 2]
 # Any[1, 2.0] -> Real[1, 2.0]
 # Vector{Any}[[1], Any[2]] -> Vector{Int}[[1], [2]]
-nested_narrow(x) = identity(x)
+nested_narrow(x) = x
 nested_narrow(array::AbstractArray) = nested_narrow.(array)
 
 function merged(xs::AbstractArray{T}) where T
