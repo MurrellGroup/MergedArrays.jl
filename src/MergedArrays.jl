@@ -40,6 +40,10 @@ Base.getindex(array::MergedArray, i::Integer) = array._constructor(map(v -> v[i]
 Base.getproperty(array::MergedArray, prop::Symbol) = prop in fieldnames(MergedArray) ?
     getfield(array, prop) : getproperty(getfield(array, :_storage), prop)
 
+function Base.propertynames(::MergedArray{T}, private::Bool=false) where T
+    (fieldnames(T)..., (private ? fieldnames(MergedArray) : ())...)
+end
+
 function MergedArray(xs::AbstractArray{T}) where T
     pairs = Pair{Symbol,Any}[]
     for name in fieldnames(T)
