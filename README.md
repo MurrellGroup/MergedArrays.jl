@@ -39,7 +39,7 @@ julia> m.name # special lazy nested field access
 ```
 
 > [!NOTE]
-> In the interest of type consistency, accessing elements of MergedArrays does *not* return views, i.e. new arrays get allocated. For lazy access of subarrays, it is best to use `view(merged(array), I...)`.
+> Accessing elements of `AbstractMergedArray`s does *not* return views, i.e. new arrays get allocated. For lazy access of subarrays, it is best to use `view(array, I...)`.
 
 ## Motivation
 
